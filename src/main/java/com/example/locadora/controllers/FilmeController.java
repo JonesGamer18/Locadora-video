@@ -9,7 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,7 +43,15 @@ public class FilmeController {
 
     @GetMapping("/film")
     public  ResponseEntity<List<FilmeModel>> getAllFilmes(){
-        return ResponseEntity.status(HttpStatus.OK).body(filmeRepository.findAll());
+        List<FilmeModel> filmeList = filmeRepository.findAll();
+        if (!filmeList.isEmpty()){
+            for(FilmeModel filme: filmeList){
+                UUID id = filme.getIdFilme();
+                filme.add(linkTo(methodOn(FilmeController.class).getOneFilme(id)).withSelfRel());
+            }
+
+        }
+        return  ResponseEntity.status(HttpStatus.OK).body(filmeList);
     }
     @GetMapping("/film/{id}")
     public  ResponseEntity<Object> getOneFilme(@PathVariable(value = "id") UUID id){
@@ -51,7 +60,29 @@ public class FilmeController {
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
 
         }
+        filmeO.get().add(linkTo(methodOn(FilmeController.class).getAllFilmes()).withRel("Lista de filmes"));
         return  ResponseEntity.status(HttpStatus.OK).body(filmeO.get());
+
+    }
+
+    @PutMapping("/film/{id}")
+    public ResponseEntity<Object> updateFilme(@PathVariable(value="id")UUID id, @RequestBody @Valid FilmeRecordDto filmeRecordDto) {
+        Optional<FilmeModel> filmeO = filmeRepository.findById(id);
+        if(filmeO.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
+        }
+        var filmeModel = filmeO.get();
+        BeanUtils.copyProperties(filmeRecordDto,filmeModel);
+        return ResponseEntity.status(HttpStatus.OK).body(filmeRepository.save(filmeModel));
+    }
+    @DeleteMapping("/film/{id}")
+    public  ResponseEntity<Object> deleteFilme(@PathVariable(value = "id") UUID id){
+        Optional<FilmeModel> filmeO = filmeRepository.findById(id);
+        if(filmeO.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
+        }
+        filmeRepository.delete(filmeO.get());
+        return ResponseEntity.status(HttpStatus.OK).body("Filme deletado com sucesso");
 
     }
 }

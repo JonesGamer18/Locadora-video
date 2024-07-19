@@ -1,13 +1,14 @@
 package com.example.locadora.models;
 
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
 @Table(name = "FILMES")
-public class FilmeModel implements Serializable {
+public class FilmeModel extends RepresentationModel<FilmeModel> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
