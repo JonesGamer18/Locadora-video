@@ -16,24 +16,12 @@ public class LocacaoModel extends RepresentationModel<LocacaoModel> implements S
     private UUID idLocacao;
 
     @ManyToOne
-    @JoinColumn(name = "filme_id")
-    private FilmeModel filmeId;
-
-    public void setFilmeId(FilmeModel filmeId) {
-        this.filmeId = filmeId;
-    }
-
-    public String getNomeFilme() {
-        return nomeFilme;
-    }
-
-    public void setNomeFilme(String nomeFilme) {
-        this.nomeFilme = nomeFilme;
-    }
-
-    private  String nomeFilme;
+    @JoinColumn(name = "filme_id", nullable = false)
+    private FilmeModel filme;
 
     private double valorLocacao;
+
+    private String nomeFilme;
 
     public UUID getIdLocacao() {
         return idLocacao;
@@ -43,14 +31,13 @@ public class LocacaoModel extends RepresentationModel<LocacaoModel> implements S
         this.idLocacao = idLocacao;
     }
 
-    public FilmeModel getFilmeId() {
-        return filmeId;
+    public FilmeModel getFilme() {
+        return filme;
     }
 
-    public void setFilme(FilmeModel filmeId) {
-        this.filmeId = filmeId;
+    public void setFilme(FilmeModel filme) {
+        this.filme = filme;
     }
-
 
     public double getValorLocacao() {
         return valorLocacao;
@@ -60,4 +47,11 @@ public class LocacaoModel extends RepresentationModel<LocacaoModel> implements S
         this.valorLocacao = valorLocacao;
     }
 
+    public String getNomeFilme() {
+        return nomeFilme;
+    }
+
+    public void setNomeFilme(String nomeFilme) {
+        this.nomeFilme = nomeFilme;
+    }
 }
