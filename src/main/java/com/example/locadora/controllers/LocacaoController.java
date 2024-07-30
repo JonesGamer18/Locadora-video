@@ -10,8 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/locacao")
@@ -68,5 +72,28 @@ public class LocacaoController {
             return ResponseEntity.status(HttpStatus.OK).body(filmeModel.getNome() + " devolvido com sucesso!");
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
+    }
+    @GetMapping("/locacao")
+    public  ResponseEntity<List<LocacaoModel>> getAllLocacoes(){
+        List<LocacaoModel> listLocacoes = locacaoRepository.findAll();
+        if (!listLocacoes.isEmpty()){
+            for(LocacaoModel locacao: listLocacoes){
+                UUID id = locacao.getIdLocacao();
+                locacao.add(linkTo(methodOn(LocacaoController.class).getOneLocacao(id)).withSelfRel());
+            }
+
+        }
+        return  ResponseEntity.status(HttpStatus.OK).body(listLocacoes);
+    }
+    @GetMapping("/locacao/{id}")
+    public  ResponseEntity<Object> getOneLocacao(@PathVariable(value = "id") UUID id){
+        Optional<LocacaoModel> locacaoO = locacaoRepository.findById(id);
+        if(locacaoO.isEmpty()){
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Dados da locação não encontrados");
+
+        }
+        locacaoO.get().add(linkTo(methodOn(LocacaoController.class).getAllLocacoes()).withRel("Informações das locações"));
+        return  ResponseEntity.status(HttpStatus.OK).body(locacaoO.get());
+
     }
 }
