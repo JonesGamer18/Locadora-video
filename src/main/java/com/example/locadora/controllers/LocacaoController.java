@@ -3,11 +3,15 @@ package com.example.locadora.controllers;
 import com.example.locadora.dtos.LocacaoRequest;
 import com.example.locadora.models.FilmeModel;
 import com.example.locadora.models.LocacaoModel;
+import com.example.locadora.models.UsuarioModel;
 import com.example.locadora.repositories.FilmeRepository;
 import com.example.locadora.repositories.LocacaoRepository;
+import com.example.locadora.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,14 +24,32 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/locacao")
 public class LocacaoController {
+
     @Autowired
     LocacaoRepository locacaoRepository;
 
     @Autowired
     FilmeRepository filmeRepository;
 
+    @Autowired
+    UsuarioRepository usuarioRepository;
+
     @PostMapping
     public ResponseEntity<String> criarLocacao(@RequestBody LocacaoRequest locacaoRequest) {
+        // Verificar se o usuário está autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+        }
+
+        // Obter o usuário autenticado
+        String email = authentication.getName();
+        Optional<UsuarioModel> usuarioOptional = usuarioRepository.findByEmail(email);
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado.");
+        }
+
+        // Verificar se o filme existe e se está disponível
         Optional<FilmeModel> filmeOptional = filmeRepository.findById(locacaoRequest.getFilme());
         if (filmeOptional.isPresent()) {
             FilmeModel filmeModel = filmeOptional.get();
@@ -36,6 +58,7 @@ public class LocacaoController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Filme não está disponível para locação.");
             }
 
+            // Criar e salvar a locação
             LocacaoModel locacao = new LocacaoModel();
             locacao.setFilme(filmeModel);
             locacao.setValorLocacao(locacaoRequest.getValorLocacao());
@@ -73,27 +96,26 @@ public class LocacaoController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
     }
+
     @GetMapping("/locacao")
-    public  ResponseEntity<List<LocacaoModel>> getAllLocacoes(){
+    public ResponseEntity<List<LocacaoModel>> getAllLocacoes() {
         List<LocacaoModel> listLocacoes = locacaoRepository.findAll();
-        if (!listLocacoes.isEmpty()){
-            for(LocacaoModel locacao: listLocacoes){
+        if (!listLocacoes.isEmpty()) {
+            for (LocacaoModel locacao : listLocacoes) {
                 UUID id = locacao.getIdLocacao();
                 locacao.add(linkTo(methodOn(LocacaoController.class).getOneLocacao(id)).withSelfRel());
             }
-
         }
-        return  ResponseEntity.status(HttpStatus.OK).body(listLocacoes);
+        return ResponseEntity.status(HttpStatus.OK).body(listLocacoes);
     }
-    @GetMapping("/locacao/{id}")
-    public  ResponseEntity<Object> getOneLocacao(@PathVariable(value = "id") UUID id){
-        Optional<LocacaoModel> locacaoO = locacaoRepository.findById(id);
-        if(locacaoO.isEmpty()){
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Dados da locação não encontrados");
 
+    @GetMapping("/locacao/{id}")
+    public ResponseEntity<Object> getOneLocacao(@PathVariable(value = "id") UUID id) {
+        Optional<LocacaoModel> locacaoO = locacaoRepository.findById(id);
+        if (locacaoO.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Dados da locação não encontrados");
         }
         locacaoO.get().add(linkTo(methodOn(LocacaoController.class).getAllLocacoes()).withRel("Informações das locações"));
-        return  ResponseEntity.status(HttpStatus.OK).body(locacaoO.get());
-
+        return ResponseEntity.status(HttpStatus.OK).body(locacaoO.get());
     }
 }

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
-@Table(name="LOCACAO")
+@Table(name = "LOCACAO")
 public class LocacaoModel extends RepresentationModel<LocacaoModel> implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -18,6 +18,10 @@ public class LocacaoModel extends RepresentationModel<LocacaoModel> implements S
     @ManyToOne
     @JoinColumn(name = "filme_id", nullable = false)
     private FilmeModel filme;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private UsuarioModel usuario;
 
     private double valorLocacao;
 
@@ -37,6 +41,14 @@ public class LocacaoModel extends RepresentationModel<LocacaoModel> implements S
 
     public void setFilme(FilmeModel filme) {
         this.filme = filme;
+    }
+
+    public UsuarioModel getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(UsuarioModel usuario) {
+        this.usuario = usuario;
     }
 
     public double getValorLocacao() {

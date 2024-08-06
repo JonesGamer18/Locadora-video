@@ -27,7 +27,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
     }
 
-    @PostMapping("/login")
+    @GetMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         if (usuarioService.authenticate(authRequest.getEmail(), authRequest.getSenha())) {
             return ResponseEntity.ok(new AuthResponse("Login bem-sucedido!"));
