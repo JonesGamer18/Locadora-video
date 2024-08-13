@@ -3,13 +3,14 @@ package com.example.locadora.dtos;
 public class AuthRequest {
     private String email;
     private String senha;
+    private String token;
 
-    public String getEmail() {
-        return email;
+    public String getToken() {
+        return token;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getSenha() {
@@ -18,5 +19,13 @@ public class AuthRequest {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

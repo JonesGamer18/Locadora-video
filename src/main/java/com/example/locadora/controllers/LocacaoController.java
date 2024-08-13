@@ -7,11 +7,10 @@ import com.example.locadora.models.UsuarioModel;
 import com.example.locadora.repositories.FilmeRepository;
 import com.example.locadora.repositories.LocacaoRepository;
 import com.example.locadora.repositories.UsuarioRepository;
+import com.example.locadora.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,17 +33,21 @@ public class LocacaoController {
     @Autowired
     UsuarioRepository usuarioRepository;
 
+    @Autowired
+    JwtUtil jwtUtil;
+
     @PostMapping
-    public ResponseEntity<String> criarLocacao(@RequestBody LocacaoRequest locacaoRequest) {
-        // Verificar se o usuário está autenticado
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não autenticado.");
+    public ResponseEntity<String> criarLocacao(@RequestBody LocacaoRequest locacaoRequest, @RequestHeader("Authorization") String token) {
+        // Validar o token JWT
+        String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+        String emailUsuario = jwtUtil.extractUsername(jwtToken);
+
+        if (emailUsuario == null || !jwtUtil.validateToken(jwtToken, emailUsuario)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou usuário não autenticado.");
         }
 
-        // Obter o usuário autenticado
-        String email = authentication.getName();
-        Optional<UsuarioModel> usuarioOptional = usuarioRepository.findByEmail(email);
+        // Obter o usuário autenticado pelo email extraído do token
+        Optional<UsuarioModel> usuarioOptional = usuarioRepository.findByEmail(emailUsuario);
         if (usuarioOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado.");
         }
@@ -73,6 +76,7 @@ public class LocacaoController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
     }
+
 
     @PutMapping("/devolver/{filmeId}")
     public ResponseEntity<String> devolverFilme(@PathVariable UUID filmeId) {

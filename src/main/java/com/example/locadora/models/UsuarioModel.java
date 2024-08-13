@@ -1,6 +1,5 @@
 package com.example.locadora.models;
 
-
 import jakarta.persistence.*;
 import org.springframework.hateoas.RepresentationModel;
 
@@ -11,13 +10,19 @@ import java.util.UUID;
 @Table(name = "USUARIOS")
 public class UsuarioModel extends RepresentationModel<UsuarioModel> implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idUsuario;
+
     private String nome;
     private String email;
     private String senha;
     private int QtdLocacoes;
+
+    // Novo campo para armazenar o token JWT
+    @Column(name = "token", length = 500)
+    private String token;
 
     public UUID getIdUsuario() {
         return idUsuario;
@@ -57,5 +62,13 @@ public class UsuarioModel extends RepresentationModel<UsuarioModel> implements S
 
     public void setQtdLocacoes(int qtdLocacoes) {
         QtdLocacoes = qtdLocacoes;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }
