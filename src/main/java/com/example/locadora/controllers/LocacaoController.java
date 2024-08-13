@@ -52,6 +52,8 @@ public class LocacaoController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado.");
         }
 
+        UsuarioModel usuarioModel = usuarioOptional.get();
+
         // Verificar se o filme existe e se está disponível
         Optional<FilmeModel> filmeOptional = filmeRepository.findById(locacaoRequest.getFilme());
         if (filmeOptional.isPresent()) {
@@ -64,6 +66,7 @@ public class LocacaoController {
             // Criar e salvar a locação
             LocacaoModel locacao = new LocacaoModel();
             locacao.setFilme(filmeModel);
+            locacao.setUsuario(usuarioModel);  // Associa o usuário à locação
             locacao.setValorLocacao(locacaoRequest.getValorLocacao());
             locacao.setNomeFilme(filmeModel.getNome());
 
@@ -76,7 +79,6 @@ public class LocacaoController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
     }
-
 
     @PutMapping("/devolver/{filmeId}")
     public ResponseEntity<String> devolverFilme(@PathVariable UUID filmeId) {
