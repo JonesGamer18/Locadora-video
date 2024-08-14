@@ -1,5 +1,6 @@
 package com.example.locadora.utils;
 
+import com.example.locadora.services.BlacklistService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -12,11 +13,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 @Component
 public class JwtUtil {
 
     // Gere uma chave segura automaticamente com o tamanho adequado
     private SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);  // Chave com pelo menos 256 bits
+
+    @Autowired
+    private BlacklistService blacklistService;  // Injeção do serviço de blacklist
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -34,6 +41,9 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, String username) {
+        if (blacklistService.isTokenBlacklisted(token)) {
+            return false; // Retorna falso se o token estiver na blacklist
+        }
         final String extractedUsername = extractUsername(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
@@ -59,3 +69,4 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 }
+

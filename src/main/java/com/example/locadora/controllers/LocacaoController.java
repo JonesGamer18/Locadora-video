@@ -63,10 +63,12 @@ public class LocacaoController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Filme não está disponível para locação.");
             }
 
+            // Incrementar o número de locações do usuário
+            usuarioModel.setQtdLocacoes(usuarioModel.getQtdLocacoes() + 1);
+            usuarioRepository.save(usuarioModel);  // Salvar a atualização no banco de dados
+
             // Criar e salvar a locação
             LocacaoModel locacao = new LocacaoModel();
-            UsuarioModel usuario = new UsuarioModel();
-            usuario.setQtdLocacoes(usuario.getQtdLocacoes()+1);
             locacao.setFilme(filmeModel);
             locacao.setUsuario(usuarioModel);  // Associa o usuário à locação
             locacao.setValorLocacao(locacaoRequest.getValorLocacao());
