@@ -65,6 +65,8 @@ public class LocacaoController {
 
             // Criar e salvar a locação
             LocacaoModel locacao = new LocacaoModel();
+            UsuarioModel usuario = new UsuarioModel();
+            usuario.setQtdLocacoes(usuario.getQtdLocacoes()+1);
             locacao.setFilme(filmeModel);
             locacao.setUsuario(usuarioModel);  // Associa o usuário à locação
             locacao.setValorLocacao(locacaoRequest.getValorLocacao());
@@ -93,17 +95,16 @@ public class LocacaoController {
             filmeModel.setDisponibilidade(true); // Atualiza a disponibilidade do filme para true
             filmeRepository.save(filmeModel); // Salva a atualização no banco de dados
 
-            // Aqui você pode decidir o que fazer com a locação: deletar ou marcar como devolvida
-            // Vamos deletar a locação como exemplo
-            Optional<LocacaoModel> locacaoOptional = locacaoRepository.findByFilme(filmeModel);
-            locacaoOptional.ifPresent(locacaoRepository::delete);
+            // O registro da locação é mantido no banco de dados
 
             return ResponseEntity.status(HttpStatus.OK).body(filmeModel.getNome() + " devolvido com sucesso!");
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Filme não encontrado");
     }
 
-    @GetMapping("/locacao")
+
+
+    @GetMapping("/list")
     public ResponseEntity<List<LocacaoModel>> getAllLocacoes() {
         List<LocacaoModel> listLocacoes = locacaoRepository.findAll();
         if (!listLocacoes.isEmpty()) {
@@ -115,7 +116,7 @@ public class LocacaoController {
         return ResponseEntity.status(HttpStatus.OK).body(listLocacoes);
     }
 
-    @GetMapping("/locacao/{id}")
+    @GetMapping("/list/{id}")
     public ResponseEntity<Object> getOneLocacao(@PathVariable(value = "id") UUID id) {
         Optional<LocacaoModel> locacaoO = locacaoRepository.findById(id);
         if (locacaoO.isEmpty()) {
